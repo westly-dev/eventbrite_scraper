@@ -47,24 +47,24 @@ class EventbriteScraper:
         date = date_elem[0].text
         time = date_elem[1].text
 
-        address_elem = list(filter(lambda e: e.find('a', class_='js-view-map-link is-hidden'), event_details_data))[0]
-        address_p = address_elem.findAll('p')
-        venue = address_p[0].text
-        street_address = address_p[1].text
-        parts_address = address_p[2].text.strip(',').split(' ')
-        city = parts_address[0]
-        state = parts_address[1]
-        zipcode = int(parts_address[2]) if parts_address[2].isnumeric() else -1
-
-        if len(address_p[3]) >= 3:
-            map_url = address_p[3].findAll('a')[1].attrs.get('href')
-        else:
-            map_url = ""
+        try:
+            address_elem = list(filter(lambda e: e.find('a', class_='js-view-map-link is-hidden'), event_details_data))[0]
+            address_p = address_elem.findAll('p')
+            venue = address_p[0].text
+            street_address = address_p[1].text
+            parts_address = address_p[2].text.strip(',').split(' ')
+            city = parts_address[0]
+            state = parts_address[1]
+        except IndexError:
+            city = ""
+            state = ""
+            venue = ""
+            street_address = ""
 
         price = event_soup.find('div', class_='js-display-price').text.strip('$')
         price = float(price) if price.isnumeric() else 0.0
 
         return Event(
             url=url, title=title, date=date, time=time, venue=venue, street_address=street_address,
-            city=city, state=state, zipcode=zipcode, map_url=map_url, price=price
+            city=city, state=state, price=price
         )
