@@ -1,4 +1,7 @@
 import pathlib
+import concurrent.futures
+
+
 
 from bs4 import BeautifulSoup
 import requests
@@ -7,7 +10,6 @@ from models import Event
 
 SCRIPT_DIR = pathlib.Path(__file__).parent.absolute()
 EVENTBRITE_URL = 'https://www.eventbrite.com/d'
-
 
 class EventbriteScraper:
     @classmethod
@@ -27,7 +29,15 @@ class EventbriteScraper:
                                          class_='eds-l-pad-all-4 eds-event-card-content eds-event-card-content--list '
                                                 'eds-event-card-content--standard eds-event-card-content--fixed')
 
-        return list(map(lambda e: EventbriteScraper.create_event(e), event_elems))
+        data = []
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            print("Starting")
+            results = executor.map(lambda e: EventbriteScraper.create_event(e), event_elems)
+            print("Stopping")
+            for r in results:
+                # print(r)
+                data.append(r)
+        return data
 
     @classmethod
     def create_event(cls, event):
